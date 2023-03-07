@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>配置页面</title>
+    </head>
+    <body>
+        <div>
+            <form action="">
+                <h3>时间配置</h3>
+                <label for="clock_config">时钟设置</label>
+                <input type="datetime-local" name="clock_time" value="2023-03-04T02:18">
+                <br>
+                <br>
+                <label>时区（时）</label>
+                <input type="text" name="clock_time_zone" value="8"/>
+                <br>
+                <br>
+                <label>NTP同步</label>
+                <input type="radio" name="clock_ntp" value=1 checked/>
+                <label for="clock_sync_start">启动</label>
+                <input type="radio" name="clock_ntp" value=0/>
+                <label for="clock_sync_stop">禁止</label>
+                <br>
+                <br>
+                <label>NTP同步间隔(秒)</label>
+                <input type="text" name="clock_ntp_interval" value="600"/>
+                <br>
+                <br>
+                <label>NTP地址</label>
+                <input type="text" name="clock_ntp_addr" value="ntp.ntsc.ac.cn";/>
+                <br>
+                <br>
+                <button>保存</button>
+            </form>
+            <form action="">
+                <h3>WIFI配置</h3>
+                <label for="age">WIFI_SSID</label>
+                <input type="text" name="wifi_ssid" value="Tenda_2C8500"/>
+                <br>
+                <label for="age">WIFI_密码</label>
+                <input type="text" name="wifi_pwd" value="password_0438"/>
+                <br>
+                <br>
+                <button>保存</button>
+            </form>
+            
+            <h3>AP热点配置</h3>
+            <label>AP_SSID</label>
+            <input type="text" name="ap_ssid" value="esp8266_Clock" disabled/>
+            <br>
+            <label>AP_密码</label>
+            <input type="text" name="ap_pwd" value="12345678" disabled/>
+           
+        </div>
+    </body>
+</html>
