@@ -6,7 +6,7 @@
 #include <NTPClient.h>
 #include <WiFiUdp.h>
 #include <ArduinoJson.h>
-// #include <ESP8266httpUpdate.h>
+#include <ESP8266httpUpdate.h>
 
 // 
 // utils function
@@ -55,61 +55,59 @@ bool wifiIsConnected(void){
 // OTA
 // 
 // 固件版本
-// #define FIRMWARE_VERSION 202307071112
+#define FIRMWARE_VERSION "202307071112"
 
-// // 自动升级：0 关闭 1 开启
-// unsigned char otaAuto = 0;
-// // ota bin url
-// String otaUrl = "";
+// 0 none 1 start; 2 progress ;3 finish ;4 error
+unsigned char otaProgressStatus = 0;
 
-// // 0 none 1 start; 2 progress ;3 finish ;4 error
-// unsigned char otaStatus = 0;
-// // ota进度
-// void showOta(void) {
-//     if(otaStatus == 0){
-//         return;
-//     }
-//     display.setFont(m2icon_9); 
-//     if(otaStatus == 1 || otaStatus == 2){
-//         display.drawGlyph(115, 31, 0x0042); //开始升级 & 升级中
-//     }
-//     if(otaStatus == 2){
-//         display.drawGlyph(115, 31, 0xe05b); //升级中
-//     }
-//     if(otaStatus == 3){
-//         display.drawGlyph(115, 31, 0xe02d); //升级成功
-//     }
-//     if(otaStatus == 4){
-//         display.drawGlyph(115, 31, 0xe02d); //升级失败
-//     }
-// }
+// ota bin url; when response http status code == 304 then means NO_UPDATES
+void otaStart(String url){
+    if(!wifiIsConnected() && url != ""){
+        return;
+    }
+    WiFiClient UpdateClient;
+    // Add optional callback notifiers
+    ESPhttpUpdate.onStart(otaStarted);
+    ESPhttpUpdate.onEnd(otaFinished);
+    ESPhttpUpdate.onProgress(otaProgress);
+    ESPhttpUpdate.onError(otaError);
 
-
-// void otaInit(void){
-//     // Add optional callback notifiers
-//     ESPhttpUpdate.onStart(otaStarted);
-//     ESPhttpUpdate.onEnd(otaFinished);
-//     ESPhttpUpdate.onProgress(otaProgress);
-//     ESPhttpUpdate.onError(otaError);
-// }
-
-// void otaStarted() {
-//     Serial.println("CALLBACK:  HTTP update process started");
-//     otaStatus = 1;
-// }
-// void otaProgress(int cur, int total) {
-//     Serial.printf("CALLBACK:  HTTP update process at %d of %d bytes...\n", cur, total);
-//     otaStatus = 2;
-// }
-
-// void otaFinished() {
-//     Serial.println("CALLBACK:  HTTP update process finished");
-//     otaStatus = 3;
-// }
-// void otaError(int err) {
-//     Serial.printf("CALLBACK:  HTTP update fatal error code %d\n", err);
-//     otaStatus = 4;
-// }
+    if(url.indexOf("?")>0){
+        url = url + "&version="+FIRMWARE_VERSION;
+    }else{
+        url = url+"?version="+FIRMWARE_VERSION;
+    }
+    
+    t_httpUpdate_return ret = ESPhttpUpdate.update(UpdateClient, url);
+    switch (ret) {
+        case HTTP_UPDATE_FAILED: 
+            Serial.printf("HTTP_UPDATE_FAILD Error (%d): %s\n", ESPhttpUpdate.getLastError(), ESPhttpUpdate.getLastErrorString().c_str()); 
+            break;
+        case HTTP_UPDATE_NO_UPDATES: 
+            Serial.println("HTTP_UPDATE_NO_UPDATES");
+            break;
+        case HTTP_UPDATE_OK: 
+            Serial.println("HTTP_UPDATE_OK"); 
+            break;
+    }
+}
+// ota Progress callback
+void otaStarted() {
+    Serial.println("CALLBACK:  HTTP update process started");
+    otaProgressStatus = 1;
+}
+void otaProgress(int cur, int total) {
+    Serial.printf("CALLBACK:  HTTP update process at %d of %d bytes...\n", cur, total);
+    otaProgressStatus = 2;
+}
+void otaFinished() {
+    Serial.println("CALLBACK:  HTTP update process finished");
+    otaProgressStatus = 3;
+}
+void otaError(int err) {
+    Serial.printf("CALLBACK:  HTTP update fatal error code %d\n", err);
+    otaProgressStatus = 4;
+}
 
 
 // 
@@ -183,7 +181,15 @@ String configHtml(){
     }else{
         clock_ntp_stop = "checked";
     }
-    return "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>配置页面</title></head><body><div><form action=\"\"><h3>时间配置</h3><label for=\"clock_config\">时钟设置</label><input type=\"datetime-local\"name=\"clock_time\"value=\""+datetime+"\"><br><br><label>时区（时）</label><input type=\"text\"value=\""+ String(timeZone) +"\" disabled/><br><br><label>NTP同步</label><input type=\"radio\"name=\"clock_ntp\"value=1 "+ clock_ntp_start +"/><label for=\"clock_sync_start\">启动</label><input type=\"radio\"name=\"clock_ntp\"value=0 "+ clock_ntp_stop +"/><label for=\"clock_sync_stop\">禁止</label><br><br><label>NTP同步间隔(秒)</label><input type=\"text\"name=\"clock_ntp_interval\"value=\""+ String(ntpSyncInterval) +"\"/><br><br><label>NTP地址</label><input type=\"text\"value=\""+(String)ntpServerName+"\" disabled/><br><br><button>保存</button></form><form action=\"\"><h3>WIFI配置</h3><label for=\"age\">WIFI_SSID</label><input type=\"text\"name=\"wifi_ssid\"value=\""+ wifiSSID +"\"/><br><label for=\"age\">WIFI_密码</label><input type=\"text\"name=\"wifi_pwd\"value=\""+ wifiPassword +"\"/><br><br><button>保存</button></form><h3>AP热点配置</h3><label>AP_SSID</label><input type=\"text\"name=\"ap_ssid\"value=\""+ apSSID +"\"disabled/><br><label>AP_密码</label><input type=\"text\"name=\"ap_pwd\"value=\""+ apPassword +"\"disabled/></div></body></html>";
+    String screenFlip = "";
+    String screenNotFlip = "";
+    if(isScreenFlipVertical()){
+        screenFlip = "checked";
+    }else{
+        screenNotFlip = "checked";
+    }
+
+    return "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>配置页面</title></head><body><div><form action=\"\"><h3>系统配置</h3><label>AP_SSID</label><input type=\"text\"name=\"ap_ssid\"value=\""+apSSID+"\"disabled/><br><label>AP_密码</label><input type=\"text\"name=\"ap_pwd\"value=\""+apPassword+"\"disabled/><br><label>屏幕翻转</label><input type=\"radio\"name=\"flip_vertical\"value=0 "+screenNotFlip+"/><label for=\"clock_sync_start\">正常</label><input type=\"radio\"name=\"flip_vertical\"value=1 "+screenFlip+"/><label for=\"flip_vertical\">翻转</label><br><button>保存</button></form><form action=\"\"><h3>WIFI配置</h3><label for=\"age\">WIFI_SSID</label><input type=\"text\"name=\"wifi_ssid\"value=\""+wifiSSID+"\"/><br><label for=\"age\">WIFI_密码</label><input type=\"text\"name=\"wifi_pwd\"value=\""+wifiPassword+"\"/><br><button>保存</button></form><form action=\"\"><h3>时间配置</h3><label for=\"clock_config\">时钟设置</label><input type=\"datetime-local\"name=\"clock_time\"value=\""+datetime+"\"><br><br><label>时区（时）</label><input type=\"text\"name=\"clock_time_zone\"value=\""+String(timeZone)+"\"disabled/><br><br><label>NTP同步</label><input type=\"radio\"name=\"clock_ntp\"value=1 "+clock_ntp_start+"/><label for=\"clock_sync_start\">启动</label><input type=\"radio\"name=\"clock_ntp\"value=0 "+clock_ntp_stop+"/><label for=\"clock_sync_stop\">禁止</label><br><br><label>NTP同步间隔(秒)</label><input type=\"text\"name=\"clock_ntp_interval\"value=\""+String(ntpSyncInterval)+"\"/><br><br><label>NTP地址</label><input type=\"text\"name=\"clock_ntp_addr\"value=\""+(String)ntpServerName+"\"disabled/><br><button>保存</button></form><form action=\"\"></form><h3>固件信息</h3><label for=\"firmware\">固件版本</label><input type=\"text\"name=\"firmware_version\"value=\""+FIRMWARE_VERSION+"\"disabled><br><br><label>OTA bin文件地址</label><input type=\"text\"name=\"firmware_url\"value=\"\"/><br><button>保存</button></from></div></body></html>";
 }
 
 // 配置页面
@@ -192,6 +198,10 @@ void config(void) {
         // 有更新
         Serial.println();    
         Serial.print("rev param");
+        if (server.hasArg("flip_vertical")){
+            // 屏幕翻转
+            setScreenFlipVertical((char)server.arg("flip_vertical").toInt(), false);
+        }
         if (server.hasArg("clock_time")){
             // 时钟时间 2023-03-04T14:08
             String clockTime = server.arg("clock_time");
@@ -226,6 +236,11 @@ void config(void) {
             WiFi.begin(wifiSSID, wifiPassword);
             WiFi.setAutoConnect(true);
         }
+        // OTA升级
+        if (server.hasArg("firmware_url")){
+            otaStart(server.arg("firmware_url"));
+        }
+
         server.sendHeader("Location", "/", true);
         server.send(302);
         return;
@@ -241,11 +256,22 @@ void config(void) {
 #define OLED_SCK 5  
 #define OLED_SDA 4
 #define OLED_ADDR 0x78
+U8G2_SSD1306_128X32_UNIVISION_F_SW_I2C display(U8G2_R0, OLED_SCK, OLED_SDA, U8X8_PIN_NONE);
+
 // Turn the display upside down.
 // 0 normal ; 1 upside down
 unsigned char flipVertical = 1;
+bool isScreenFlipVertical(void){
+    return flipVertical==1;
+}
+// 设置翻转
+void setScreenFlipVertical(char mode, bool force){
+    if(mode != flipVertical || force){
+        flipVertical = mode;
+        display.setFlipMode(flipVertical);
+    }
+}
 
-U8G2_SSD1306_128X32_UNIVISION_F_SW_I2C display(U8G2_R0, OLED_SCK, OLED_SDA, U8X8_PIN_NONE);
 // wifi图标
 void showIcon_Wifi(void) {
     if(wifiStatus > 0){
@@ -303,8 +329,22 @@ void showDate(void) {
     display.setFont(u8g2_font_7x13_t_symbols);
     display.drawGlyph(15, 14, 0x002f);
 }
-
-
+// ota进度
+void showOta(void) {
+    if(otaProgressStatus == 0){
+        return;
+    }
+    display.setFont(u8g2_font_m2icon_9_tf); 
+    if(otaProgressStatus == 1 || otaProgressStatus == 2){
+        display.drawGlyph(115, 31, 0x0042); //开始升级 & 升级中
+    }
+    if(otaProgressStatus == 3){
+        display.drawGlyph(115, 31, 0x0044); //升级成功
+    }
+    if(otaProgressStatus == 4){
+        display.drawGlyph(115, 31, 0x0043); //升级失败
+    }
+}
 // 
 // ticker
 // 
@@ -337,10 +377,9 @@ void setup() {
     display.begin();
     // 开启Arduino平台下支持输出UTF8字符集
     // display.enableUTF8Print();
-    if (flipVertical > 0) {
-        // 设置屏幕翻转
-        display.setFlipMode(1);
-    }
+
+    // 屏幕翻转设置
+    setScreenFlipVertical(flipVertical, true);
     // display.drawLine(0, 0, 127, 0);
     // display.drawLine(0, 31, 127, 31);
     // display.drawLine(0, 0, 0, 31);
@@ -399,7 +438,7 @@ void loop() {
     showDate();
     showTime();
     showTimeSeparator();
-    // showOta();
+    showOta();
     // 发送缓冲区的内容到显示器
     display.sendBuffer();
     delay(1000);

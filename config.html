@@ -7,13 +7,39 @@
     <body>
         <div>
             <form action="">
+                <h3>系统配置</h3>
+                <label>AP_SSID</label>
+                <input type="text" name="ap_ssid" value="esp8266_Clock" disabled/>
+                <br>
+                <label>AP_密码</label>
+                <input type="text" name="ap_pwd" value="12345678" disabled/>
+                <br>
+                <label>屏幕翻转</label>
+                <input type="radio" name="flip_vertical" value=0/>
+                <label for="clock_sync_start">正常</label>
+                <input type="radio" name="flip_vertical" value=1/>
+                <label for="flip_vertical">翻转</label>
+                <br>
+                <button>保存</button>
+            </form>
+            <form action="">
+                <h3>WIFI配置</h3>
+                <label for="age">WIFI_SSID</label>
+                <input type="text" name="wifi_ssid" value="Tenda_2C8500"/>
+                <br>
+                <label for="age">WIFI_密码</label>
+                <input type="text" name="wifi_pwd" value="password_0438"/>
+                <br>
+                <button>保存</button>
+            </form>
+            <form action="">
                 <h3>时间配置</h3>
                 <label for="clock_config">时钟设置</label>
                 <input type="datetime-local" name="clock_time" value="2023-03-04T02:18">
                 <br>
                 <br>
                 <label>时区（时）</label>
-                <input type="text" name="clock_time_zone" value="8"/>
+                <input type="text" name="clock_time_zone" value="8" disabled/>
                 <br>
                 <br>
                 <label>NTP同步</label>
@@ -28,30 +54,26 @@
                 <br>
                 <br>
                 <label>NTP地址</label>
-                <input type="text" name="clock_ntp_addr" value="ntp.ntsc.ac.cn";/>
-                <br>
-                <br>
-                <button>保存</button>
-            </form>
-            <form action="">
-                <h3>WIFI配置</h3>
-                <label for="age">WIFI_SSID</label>
-                <input type="text" name="wifi_ssid" value="Tenda_2C8500"/>
-                <br>
-                <label for="age">WIFI_密码</label>
-                <input type="text" name="wifi_pwd" value="password_0438"/>
-                <br>
+                <input type="text" name="clock_ntp_addr" value="ntp.ntsc.ac.cn" disabled/>
                 <br>
                 <button>保存</button>
             </form>
-            
-            <h3>AP热点配置</h3>
-            <label>AP_SSID</label>
-            <input type="text" name="ap_ssid" value="esp8266_Clock" disabled/>
-            <br>
-            <label>AP_密码</label>
-            <input type="text" name="ap_pwd" value="12345678" disabled/>
-           
+            <form action=""></form>
+                <h3>固件信息</h3>
+                <label for="firmware">固件版本</label>
+                <input type="text" name="firmware_version" value="202307071112" disabled>
+                <br>
+                <br>
+                <label>OTA bin文件地址</label>
+                <input type="text" name="firmware_url" value=""/>?version=
+                <br>
+                <button>保存</button>
+            </from>
         </div>
     </body>
 </html>
+
+
+
+
+<!-- "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>配置页面</title></head><body><div><form action=\"\"><h3>时间配置</h3><label for=\"clock_config\">时钟设置</label><input type=\"datetime-local\"name=\"clock_time\"value=\""+datetime+"\"><br><br><label>时区（时）</label><input type=\"text\"value=\""+ String(timeZone) +"\" disabled/><br><br><label>NTP同步</label><input type=\"radio\"name=\"clock_ntp\"value=1 "+ clock_ntp_start +"/><label for=\"clock_sync_start\">启动</label><input type=\"radio\"name=\"clock_ntp\"value=0 "+ clock_ntp_stop +"/><label for=\"clock_sync_stop\">禁止</label><br><br><label>NTP同步间隔(秒)</label><input type=\"text\"name=\"clock_ntp_interval\"value=\""+ String(ntpSyncInterval) +"\"/><br><br><label>NTP地址</label><input type=\"text\"value=\""+(String)ntpServerName+"\" disabled/><br><br><button>保存</button></form><form action=\"\"><h3>WIFI配置</h3><label for=\"age\">WIFI_SSID</label><input type=\"text\"name=\"wifi_ssid\"value=\""+ wifiSSID +"\"/><br><label for=\"age\">WIFI_密码</label><input type=\"text\"name=\"wifi_pwd\"value=\""+ wifiPassword +"\"/><br><br><button>保存</button></form><h3>AP热点配置</h3><label>AP_SSID</label><input type=\"text\"name=\"ap_ssid\"value=\""+ apSSID +"\"disabled/><br><label>AP_密码</label><input type=\"text\"name=\"ap_pwd\"value=\""+ apPassword +"\"disabled/></div></body></html>" -->
