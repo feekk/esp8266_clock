@@ -25,8 +25,8 @@ String twoDigits(int digits) {
 // variable config
 
 // ap config
-String apSSID = "esp8266_Clock";
-String apPassword = "12345678";
+String apSSID = "";
+String apPassword = "";
 IPAddress apIP(192, 168, 1, 1); 
 IPAddress apGateway(192, 168, 0, 1); 
 IPAddress apSubnet(255, 255, 255, 0); 
@@ -35,8 +35,8 @@ unsigned char apStatus = 0; // 0未启动 1已启动
 // connect wifi
 // String wifiSSID = "HUAWEI Mate 20 Pro (UD)";
 // String wifiPassword ="12345678";
-String wifiSSID = "Tenda_2C8500";
-String wifiPassword ="password_0438";
+String wifiSSID = "";
+String wifiPassword ="";
 unsigned char wifiStatus = 0; // 0未连接 1已连接
 // 检查icon状态
 void wifiIconStatusSync(void) {
