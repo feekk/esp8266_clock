@@ -25,7 +25,7 @@ String twoDigits(int digits) {
 // variable config
 
 // ap config
-String apSSID = "esp8266_Clock";
+String apSSID = "esp8266_Clock1";
 String apPassword = "12345678";
 IPAddress apIP(192, 168, 1, 1); 
 IPAddress apGateway(192, 168, 0, 1); 
@@ -252,8 +252,13 @@ void config(void) {
 // Initialize the OLED display using Wire library
 // 128*32
 
+// nodemcu
 // GPIO define SCK = D1 SDA = D2
-#define OLED_SCK 5  
+// #define OLED_SCK 5  
+// #define OLED_SDA 4
+// esp01s
+// GPIO define SCK = GIPO2 SDA = RX
+#define OLED_SCK 2
 #define OLED_SDA 4
 #define OLED_ADDR 0x78
 U8G2_SSD1306_128X32_UNIVISION_F_SW_I2C display(U8G2_R0, OLED_SCK, OLED_SDA, U8X8_PIN_NONE);
@@ -364,6 +369,7 @@ void tickerPerSecondCallback(void) {
 // 
 void setup() {
     delay(1000);
+    // pinMode(OLED_SCK, FUNCTION_3);
     // 设置i2c地址，默认是0x78 
     display.setI2CAddress(OLED_ADDR);
 
@@ -375,6 +381,8 @@ void setup() {
 
     // 初始化显示器, 清屏, 唤醒屏幕
     display.begin();
+    // 设置亮度 0~255
+    // display.setContrast(80);
     // 开启Arduino平台下支持输出UTF8字符集
     // display.enableUTF8Print();
 
